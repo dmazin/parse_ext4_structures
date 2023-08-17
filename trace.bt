@@ -1,0 +1,17 @@
+// These are the s_dev identifiers for the disk I'm using
+#define DEV_DISK 8388656
+#define DEV_PARTITION 8388657
+
+tracepoint:block:block_rq_issue
+/(args->dev == DEV_DISK || args->dev == DEV_PARTITION) && strcontains(args->rwbs, "W")/
+{
+    time("%H:%M:%S");
+    printf(" %s\n", probe);
+    printf("rwbs: %s, sector: %d, bytes: %d, comm: %s\n", args->rwbs, args->sector, args->bytes, comm);
+    //printf("kernel stack:");
+    //printf("%s\n", kstack);
+    printf("\n");
+
+    @[args->rwbs] = sum(args->bytes);
+    @bytes_written = sum(args->bytes);
+}
